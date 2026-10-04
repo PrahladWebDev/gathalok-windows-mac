@@ -47,6 +47,12 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "appx",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "build/icon.ico"
@@ -56,6 +62,12 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "appx": {
+      "identityName": "PrahladSinghLabs.GathaLok",
+      "publisher": "CN=5012F72D-7480-41B7-AEA3-A21BB6FD1626",
+      "publisherDisplayName": "Prahlad Singh Labs",
+      "applicationId": "GathaLok"
     }
   }
 }
