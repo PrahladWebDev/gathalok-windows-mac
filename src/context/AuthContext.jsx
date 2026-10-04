@@ -1,11 +1,27 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import api, { TOKEN_KEY, USER_KEY } from '../api/client';
+import api, { TOKEN_KEY, USER_KEY, setUnauthorizedHandler } from '../api/client';
+import { useToast } from './ToastContext';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
+
+  // Token expired/invalid -> clear session and tell the user to log in again.
+  // RequireAuth then redirects protected pages to /login automatically.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      // Several requests can fail together — only react once per session.
+      if (!localStorage.getItem(TOKEN_KEY)) return;
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      setUser(null);
+      toast('Your session has expired. Please log in again.', 'error', 3500);
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [toast]);
 
   useEffect(() => {
     (async () => {

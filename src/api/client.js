@@ -32,6 +32,13 @@ export async function testConnection(url) {
 
 const api = axios.create({ timeout: 15000 });
 
+// AuthContext registers what to do when the session expires (clear user + toast).
+let onUnauthorized = null;
+export const setUnauthorizedHandler = (fn) => { onUnauthorized = fn; };
+
+// 401s from these endpoints are normal failures (wrong password etc.), not an expired session.
+const NON_SESSION_401 = ['/auth/login', '/auth/register', '/auth/password'];
+
 api.interceptors.request.use(async (config) => {
   const base = await getBaseURL();
   config.baseURL = `${base}/api`;
@@ -43,6 +50,15 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    const url = err?.config?.url || '';
+    const hadToken = !!err?.config?.headers?.Authorization;
+    if (
+      err?.response?.status === 401 &&
+      hadToken &&
+      !NON_SESSION_401.some((u) => url.includes(u))
+    ) {
+      if (onUnauthorized) onUnauthorized();
+    }
     const data = err?.response?.data;
     const message = data?.message || err.message || 'Something went wrong';
     const wrapped = new Error(message);
